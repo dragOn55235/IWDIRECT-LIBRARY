@@ -1,0 +1,110 @@
+import glfw
+import vulkan
+import ctypes
+import numpy as np
+
+# Initialisation de GLFW
+glfw.init()
+
+# Configuration de la fenêtre
+glfw.window_hint(glfw.CLIENT_API, glfw.NO_API)
+glfw.window_hint(glfw.RESIZABLE, glfw.FALSE)
+width, height = 800, 600
+window = glfw.create_window(width, height, "Camera avec Vulkan", None, None)
+
+# Charger Vulkan et créer une instance
+instance = vulkan.vkCreateInstance(...)
+
+# Créer une surface Vulkan
+surface = glfw.create_window_surface(instance, window, None)
+
+# Fonction pour créer le pipeline de rendu Vulkan
+def create_graphics_pipeline():
+    # Définir les shaders Vulkan (à implémenter)
+    vert_shader_code = b"..."
+    frag_shader_code = b"..."
+    
+    # Compiler et charger les shaders Vulkan (à implémenter)
+    vert_shader_module = create_shader_module(vert_shader_code)
+    frag_shader_module = create_shader_module(frag_shader_code)
+    
+    # Configurer le pipeline de rendu Vulkan (à implémenter)
+    # ...
+
+# Initialisation des matrices de transformation
+view_matrix = np.identity(4, dtype=np.float32)
+projection_matrix = np.identity(4, dtype=np.float32)
+
+# Position et orientation de la caméra
+camera_position = np.array([0.0, 0.0, 3.0], dtype=np.float32)
+camera_front = np.array([0.0, 0.0, -1.0], dtype=np.float32)
+camera_up = np.array([0.0, 1.0, 0.0], dtype=np.float32)
+camera_speed = 2.5
+camera_sensitivity = 0.1
+
+# Fonction pour calculer la matrice de vue (view matrix)
+def calculate_view_matrix():
+    global view_matrix
+    # La cible de la caméra est position + front
+    target = camera_position + camera_front
+    # Calculer la matrice de vue
+    view_matrix = np.lookat(camera_position, target, camera_up)
+
+# Fonction pour gérer les entrées utilisateur
+def process_input(window):
+    global camera_position, camera_front, camera_speed, camera_sensitivity
+    # Déplacer la caméra
+    if glfw.get_key(window, glfw.KEY_W) == glfw.PRESS:
+        camera_position += camera_speed * camera_front
+    if glfw.get_key(window, glfw.KEY_S) == glfw.PRESS:
+        camera_position -= camera_speed * camera_front
+    if glfw.get_key(window, glfw.KEY_A) == glfw.PRESS:
+        camera_position -= np.cross(camera_front, camera_up) * camera_speed
+    if glfw.get_key(window, glfw.KEY_D) == glfw.PRESS:
+        camera_position += np.cross(camera_front, camera_up) * camera_speed
+    
+    # Gérer la rotation de la caméra (regarder autour)
+    if glfw.get_cursor_mode(window) == glfw.CURSOR_DISABLED:
+        x_pos, y_pos = glfw.get_cursor_pos(window)
+        x_offset = x_pos - width / 2
+        y_offset = height / 2 - y_pos
+        x_offset *= camera_sensitivity
+        y_offset *= camera_sensitivity
+        
+        yaw = x_offset
+        pitch = y_offset
+        
+        # Limiter l'angle de rotation de la caméra
+        if pitch > 89.0:
+            pitch = 89.0
+        if pitch < -89.0:
+            pitch = -89.0
+        
+        # Calculer la nouvelle direction frontale de la caméra
+        front = np.array([
+            np.cos(np.radians(yaw)) * np.cos(np.radians(pitch)),
+            np.sin(np.radians(pitch)),
+            np.sin(np.radians(yaw)) * np.cos(np.radians(pitch))
+        ], dtype=np.float32)
+        
+        # Normaliser le vecteur front
+        camera_front = front / np.linalg.norm(front)
+        
+        # Réinitialiser la position du curseur au centre de la fenêtre
+        glfw.set_cursor_pos(window, width / 2, height / 2)
+
+# Boucle principale
+while not glfw.window_should_close(window):
+    # Gestion des événements GLFW
+    glfw.poll_events()
+    process_input(window)
+    
+    # Calculer la matrice de vue à chaque itération
+    calculate_view_matrix()
+    
+    # Appeler une fonction pour dessiner avec Vulkan (à implémenter)
+    draw_frame()
+    
+# Nettoyage des ressources
+glfw.destroy_window(window)
+glfw.terminate()

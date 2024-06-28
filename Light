@@ -1,1 +1,50 @@
+import glfw
+import vulkan
+import ctypes
+
+# Initialisation de GLFW
+glfw.init()
+
+# Configuration de la fenêtre
+glfw.window_hint(glfw.CLIENT_API, glfw.NO_API)
+glfw.window_hint(glfw.RESIZABLE, glfw.FALSE)
+width, height = 800, 600
+window = glfw.create_window(width, height, "Simulation de lumière avec Vulkan", None, None)
+
+# Charger Vulkan et créer une instance
+instance = vulkan.vkCreateInstance(...)
+
+# Créer une surface Vulkan
+surface = glfw.create_window_surface(instance, window, None)
+
+# Fonction pour créer le pipeline Vulkan
+def create_graphics_pipeline():
+    # Définir les shaders Vulkan (à implémenter)
+    vert_shader_code = b"..."
+    frag_shader_code = b"..."
+    
+    # Compiler et charger les shaders Vulkan (à implémenter)
+    vert_shader_module = create_shader_module(vert_shader_code)
+    frag_shader_module = create_shader_module(frag_shader_code)
+    
+    # Configurer le pipeline de rendu Vulkan (à implémenter)
+    # ...
+
+# Boucle principale
+while not glfw.window_should_close(window):
+    # Gestion des événements GLFW
+    glfw.poll_events()
+    
+    # Récupérer la position de la souris
+    mouse_x, mouse_y = glfw.get_cursor_pos(window)
+    
+    # Mettre à jour la position de la lumière (à implémenter)
+    light_position = [mouse_x, mouse_y, 0.0]
+    
+    # Appeler une fonction pour dessiner avec Vulkan (à implémenter)
+    draw_frame()
+    
+# Nettoyage des ressources
+glfw.destroy_window(window)
+glfw.terminate()
 
